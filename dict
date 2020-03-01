@@ -1,27 +1,46 @@
 #!/usr/bin/env node
 
 const L = require('./lib').logger;
+const responseLogger = require('./lib').responseLogger;
 const dictionaryApi = require('./api').dictionary;
 const logtag = '[dict]';
 
 (async function () {
-    const command = process.argv[2];
+    let command = process.argv[2];
+    let word = process.argv[3];
 
     try {
-        if(command === undefined) {
-            throw new Error(`No function provided`); //TODO : Improve message here 
-        }
-
         let response = {};
 
         switch (command) {
             case 'defn':
-                const word = process.argv[3];
                 response = await dictionaryApi.getWordDefinition(word);
                 break;
+            case 'syn':
+                response = await dictionaryApi.getRelatedWords(word, 'synonym');
+                break;
+            case 'ant':
+                response = await dictionaryApi.getRelatedWords(word, 'antonym');
+                break;
+            case 'ex':
+                response = await dictionaryApi.getWordExamples(word);
+                break;
+            case 'play':
+                await dictionaryApi.gameplay();
+                break;
+            case undefined:
+                randomWordResponse = await dictionaryApi.getRandomWord();
+                word = randomWordResponse && randomWordResponse.word;
+                response = await dictionaryApi.getAll(word);
+                break;
             default:
-                throw new Error(`Unsupported function ${command}`);
+                word = command;
+                response = await dictionaryApi.getAll(word);
+                break;
+
         }
+
+        responseLogger(command, response);
 
         process.exit(0);
     } catch (err) {

@@ -48,14 +48,59 @@ class Dictionary {
         }
     }
 
-    static async getRelatedWords(word) {
+    static async getRelatedWords(word, relationshipType = 'all') {
         try {
             if(typeof(word) !== 'string') {
                 throw new Error(`Provided word ${word} is not a valid string`);
             }
 
-            let response = await relatedWordsClientObject.with(word);
-            return response;
+            const response = await relatedWordsClientObject.with(word);
+
+            let finalResponse;
+
+            for(let row of response) {
+                if(row.relationshipType === relationshipType) {
+                    finalResponse = row;
+                    break;
+                }
+            }
+
+            if(finalResponse === undefined) {
+                if(relationshipType === 'all') {
+                    finalResponse = response;
+                } else {
+                    throw new Error(`Unsupported relationship type ${relationshipType} provided for fetching related words for ${word}`);
+                }
+            } 
+
+            return finalResponse;
+        } catch(err) {
+            throw err;
+        }
+    }
+
+    static async getAll(word) {
+        try {
+            let [definition, relation, examples] = await Promise.all([
+                this.getWordDefinition(word),
+                this.getRelatedWords(word),
+                this.getWordExamples(word),
+            ]);
+
+            return {
+                word,
+                definition,
+                relation,
+                examples,
+            };
+        } catch(err) {
+            throw err;
+        }
+    }
+
+    static async gameplay() {
+        try {
+
         } catch(err) {
             throw err;
         }
