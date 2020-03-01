@@ -12,7 +12,18 @@
     "debug": "^4.1.1",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
+    "request": "^2.88.2",
     "request-promise": "^4.2.5",
     "uuid": "^7.0.1"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "jsdoc": "^3.6.3",
+    "jshint": "^2.11.0",
+    "mocha": "^7.1.0",
+    "nock": "^12.0.1",
+    "nyc": "^15.0.0",
+    "sinon": "^9.0.0"
   }
 }

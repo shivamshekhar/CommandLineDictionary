@@ -142,7 +142,6 @@ class BaseClient {
         try {
             const requestOpts = this._prepareRequestOpts(apiPath, httpOpts);
             const response = await this._hitHttpRequest(requestOpts);
-            L.log(`${this.LOGTAG} : Success response for request opts : ${JSON.stringify(requestOpts)} |\nResponse : ${JSON.stringify(response)}`);
             return response;
         } catch(err) {
             L.error(`${this.LOGTAG} : Error occurred while calling .with() for client ${this.CLIENT_NAME} :`, err);
