@@ -1,12 +1,12 @@
 {
-  "name": "automate.io.task",
+  "name": "command-line-dictionary",
   "version": "1.0.0",
-  "description": "Automate.io task",
-  "main": "index.js",
+  "description": "A command line dictionary tool",
+  "main": "dict",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Shivam Shekhar",
+  "author": "Shivam Shekhar <shivamshekhar299@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "debug": "^4.1.1",
