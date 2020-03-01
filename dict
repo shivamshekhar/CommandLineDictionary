@@ -1,5 +1,31 @@
 #!/usr/bin/env node
 
-(function() {
-    console.log(process.argv);
+const L = require('./lib').logger;
+const dictionaryApi = require('./api').dictionary;
+const logtag = '[dict]';
+
+(async function () {
+    const command = process.argv[2];
+
+    try {
+        if(command === undefined) {
+            throw new Error(`No function provided`); //TODO : Improve message here 
+        }
+
+        let response = {};
+
+        switch (command) {
+            case 'defn':
+                const word = process.argv[3];
+                response = await dictionaryApi.getWordDefinition(word);
+                break;
+            default:
+                throw new Error(`Unsupported function ${command}`);
+        }
+
+        process.exit(0);
+    } catch (err) {
+        L.error(`${logtag} : Error occurred :`, (err && err.message) || err);
+        process.exit(1);
+    }
 }())
