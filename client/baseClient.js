@@ -2,7 +2,7 @@
 
 const requestPromise = require('request-promise');
 const _ = require('lodash');
-const debug = require('debug')('automate.io.client.baseClient');
+const debug = require('debug')('commandLineDictionary.client.baseClient');
 const uuid = require('uuid');
 const L = require('../lib').logger;
 
