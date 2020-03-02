@@ -2,7 +2,8 @@
 
 const L = require('./lib').logger;
 const responseLogger = require('./lib').responseLogger;
-const dictionaryApi = require('./api').dictionary;
+const DictionaryApi = require('./api').dictionary;
+const constants = require('./config').constants;
 const logtag = '[dict]';
 
 (async function () {
@@ -14,28 +15,28 @@ const logtag = '[dict]';
 
         switch (command) {
             case 'defn':
-                response = await dictionaryApi.getWordDefinition(word);
+                response = await DictionaryApi.getWordDefinition(word);
                 break;
             case 'syn':
-                response = await dictionaryApi.getRelatedWords(word, 'synonym');
+                response = await DictionaryApi.getRelatedWords(word, constants.WORD_RELATIONSHIP_TYPES.SYNONYM);
                 break;
             case 'ant':
-                response = await dictionaryApi.getRelatedWords(word, 'antonym');
+                response = await DictionaryApi.getRelatedWords(word, constants.WORD_RELATIONSHIP_TYPES.ANTONYM);
                 break;
             case 'ex':
-                response = await dictionaryApi.getWordExamples(word);
+                response = await DictionaryApi.getWordExamples(word);
                 break;
             case 'play':
-                await dictionaryApi.gameplay();
+                await DictionaryApi.gameplay();
                 break;
             case undefined:
-                randomWordResponse = await dictionaryApi.getRandomWord();
+                randomWordResponse = await DictionaryApi.getRandomWord();
                 word = randomWordResponse && randomWordResponse.word;
-                response = await dictionaryApi.getAll(word);
+                response = await DictionaryApi.getAll(word);
                 break;
             default:
                 word = command;
-                response = await dictionaryApi.getAll(word);
+                response = await DictionaryApi.getAll(word);
                 break;
 
         }
