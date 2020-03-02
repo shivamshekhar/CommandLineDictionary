@@ -48,25 +48,42 @@ class Game {
         let promise = new Promise((resolve, reject) => {
             this.gameState
             .on('start', async () => {
-                await this._start();
+                try {
+                    await this._start();
+                } catch(err) {
+                    this.gameState.emit('error', err);
+                }
             })
             .on('create', async () => {
-                await this._create();
+                try {
+                    await this._create();
+                } catch(err) {
+                    this.gameState.emit('error', err);
+                }
             })
             .on('play', async () => {
-                await this._play();
+                try {
+                    await this._play();
+                } catch(err) {
+                    this.gameState.emit('error', err);
+                }
             })
             .on('choice', async () => {
-                await this._choice();
+                try {
+                    await this._choice();
+                } catch(err) {
+                    this.gameState.emit('error', err);
+                }
             })
             .on('hint', async () => {
-                await this._hint();
+                try {
+                    await this._hint();
+                } catch(err) {
+                    this.gameState.emit('error', err);
+                }
             })
             .on('exit', resolve)
-            .on('error', err => {
-                this.gameState.close();
-                return reject(err);
-            });
+            .on('error', reject);
         });
 
         this.gameState.emit('start');
@@ -74,7 +91,7 @@ class Game {
     }
 
     async _start() {
-        L.info(`---------------- LET'S PLAY : GUESS THE WORD! ----------------\n`);
+        L.info(`\n---------------- LET'S PLAY : GUESS THE WORD! ----------------\n`);
         await rlQuestionPromisified(`\nInstructions :\nYou would be provided with a definition, a synonym or an antonym and you need to guess what the original word is!\n\nPress Enter to begin!`);
         return this.gameState.emit('create');
     }
@@ -121,7 +138,7 @@ class Game {
 
     async _choice() {
         L.info(`-----------------------------------------------------------------\n`);
-        L.info(`1 : Try Again\n\n2 : Get a hint\n\n3 : Quit\n\n`);
+        L.info(`1 : Try Again\n2 : Get a hint\n3 : Quit\n\n`);
         const choice = await rlQuestionPromisified(`Select an option to proceed : `);
 
         switch(choice) {
@@ -139,7 +156,7 @@ class Game {
 
     async _hint() {
         L.info(`-----------------------------------------------------------------\n`);
-        L.info(`Hint : ${this.randomWord}`);
+        L.info(`Hint : Jumbled word : ${LibUtils.jumbleWord(this.randomWord)}`);
         return this.gameState.emit('play');
     }
 }
