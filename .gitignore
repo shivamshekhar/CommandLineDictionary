@@ -4,3 +4,4 @@ out/
 taskReferenceAPI
 Command Line Dictionary Tool.pdf
 package-lock.json
+.DS_Store

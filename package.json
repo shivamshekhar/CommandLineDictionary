@@ -4,7 +4,8 @@
   "description": "A command line dictionary tool",
   "main": "dict",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs": "rm -rf ./docs && ./node_modules/.bin/jsdoc package.json dict client/** lib/** api/** config/** -d docs"
   },
   "author": "Shivam Shekhar <shivamshekhar299@gmail.com>",
   "license": "MIT",

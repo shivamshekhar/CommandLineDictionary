@@ -3,6 +3,10 @@
 const BaseClient = require('./baseClient');
 const apiConfig = require('../config').api;
 
+/**
+ * @class
+ * @extends BaseClient
+ */
 class Dictionary extends BaseClient {
     /**
      * 

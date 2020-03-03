@@ -19,12 +19,24 @@ const rlQuestionPromisified = (question) => {
     });
 };
 
+/**
+ * @module
+ * @name Game
+ * @description - Module which contains our Game class and its API.
+ */
+
+/**
+ * @class
+ */
 class GameState extends EventEmitter {
     constructor(...args) {
         super(...args);
     }
 }
 
+/**
+ * @class
+ */
 class Game {
     constructor() {
         this.gameState = new GameState();
@@ -192,6 +204,9 @@ class Game {
     }
 }
 
+/**
+ * @class
+ */
 class GameApi {
     static async play() {
         try {

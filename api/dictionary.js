@@ -7,6 +7,9 @@ const DictionaryClient = require('../client').dictionary;
 const dictionaryClientObject = new DictionaryClient();
 const logtag = '[api/dictionary]';
 
+/**
+ * @class
+ */
 class Dictionary {
     static async getWordDefinition(word) {
         try {

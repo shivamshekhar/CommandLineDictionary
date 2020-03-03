@@ -1,5 +1,10 @@
 "use strict";
 
+/**
+ * @module
+ * @name Constants
+ * @description - All hardcoded constant values are included in this object
+ */
 const Constants = Object.freeze({
     WORD_RELATIONSHIP_TYPES : {
         ANTONYM : 'antonym',

@@ -1,8 +1,33 @@
-# Command Line Dictionary 
+# Command Line Dictionary  
 
 A basic command line dictionary tool written in Nodejs.
 
-## Supported commands :
+## Getting started  
+
+Make sure you have installed **node (version 8.17.0 or above)**. Visit https://nodejs.org/en/download/ for more info.
+
+* Clone this repository
+    ```sh
+    git clone https://github.com/shivamshekhar/CommandLineDictionary.git
+    ```
+* Checkout into the working directory
+    ```sh
+    cd CommandLineDictionary
+    ```
+* Install dependencies using following command
+    ```sh
+    npm install
+    ```
+* Run 
+    ```sh
+    ./dict
+    ```
+    If you are facing any permission denied issues while running above command, ensure that the file is executable. You may use following command to achieve the same
+    ```sh 
+    chmod 755 dict 
+    ```
+
+## Supported commands  
 1. Word Definitions : Display definitions of a given word.
     ```sh
     ./dict defn <word>
@@ -31,23 +56,34 @@ A basic command line dictionary tool written in Nodejs.
     ```sh
     ./dict play
     ```
-### Rules:
-* Enter the correct word to complete the game.
-* Any synonyms of the word(expected answer) would also be accepted as a correct answer.
-* If incorrect word is entered, user has 3 choices:
-    * Try again : User can try again.
-    * Hint : A hint is displayed. Hints could be:
-        * The word is randomly jumbled (cat => atc, tac, tca)
-        * Another definition of the word is displayed
-        * Another antonym of the word is displayed
-        * Another synonym of the word is displayed
-    * Quit : Quit the game.
+    * Rules:
+        * Enter the correct word to complete the game.
+        * Any synonyms of the word(expected answer) would also be accepted as a correct answer.
+        * If incorrect word is entered, user has 3 choices:
+            * Try again : User can try again.
+            * Hint : A hint is displayed. Hints could be:
+                * The word is randomly jumbled (cat => atc, tac, tca)
+                * Another definition of the word is displayed
+                * Another antonym of the word is displayed
+                * Another synonym of the word is displayed
+            * Quit : Quit the game.
 
-## Getting started
+## Documentation
+
+To generate code level documentation, run 
+```sh
+npm run docs
+```
+
+To access the documentation, open 
+```sh
+./docs/command-line-dictionary/<version>/index.js 
+```
 
 ## Author
 
-Shivam Shekhar : shivamshekhar299@gmail.com
+Shivam Shekhar  
+Email : shivamshekhar299@gmail.com
 
 ## License
 
