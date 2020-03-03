@@ -5,6 +5,16 @@ const Constants = Object.freeze({
         ANTONYM : 'antonym',
         SYNONYM : 'synonym',
         ALL : 'all',
+    },
+
+    GAME_STATES : {
+        START : "start",
+        PLAY : "play",
+        QUIT : "quit",
+        ERROR : "error",
+        CHOICE : "choice",
+        HINT : "hint",
+        CREATE : "create",
     }
 });
 

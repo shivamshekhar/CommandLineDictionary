@@ -30,91 +30,73 @@ const rlQuestionPromisified = (question) => {
     });
 };
 
-const getRandomDefinition = (wordDefinitions) => {
-    const randomIndex = LibUtils.getRandomIntInRange(0, (wordDefinitions.length - 1));
-    return wordDefinitions[randomIndex].text;
-};
-
-const getRandomRelatedWord = (words = []) => {
-    return words[LibUtils.getRandomIntInRange(0, words.length - 1)];
-};
+class GameState extends EventEmitter {
+    constructor(...args) {
+        super(...args);
+    }
+}
 
 class Game {
-    constructor(...args) {
+    constructor() {
         this.gameState = new GameState();
     }
 
     gameplay() {
         let promise = new Promise((resolve, reject) => {
             this.gameState
-            .on('start', async () => {
-                try {
-                    await this._start();
-                } catch(err) {
-                    this.gameState.emit('error', err);
-                }
+            .on(constants.GAME_STATES.START, async () => {
+                await this._gracefulErrorHandler(this._start.bind(this));
             })
-            .on('create', async () => {
-                try {
-                    await this._create();
-                } catch(err) {
-                    this.gameState.emit('error', err);
-                }
+            .on(constants.GAME_STATES.CREATE, async () => {
+                await this._gracefulErrorHandler(this._create.bind(this));
             })
-            .on('play', async () => {
-                try {
-                    await this._play();
-                } catch(err) {
-                    this.gameState.emit('error', err);
-                }
+            .on(constants.GAME_STATES.PLAY, async (randomize) => {
+                await this._gracefulErrorHandler(this._play.bind(this), randomize);
             })
-            .on('choice', async () => {
-                try {
-                    await this._choice();
-                } catch(err) {
-                    this.gameState.emit('error', err);
-                }
+            .on(constants.GAME_STATES.CHOICE, async () => {
+                await this._gracefulErrorHandler(this._choice.bind(this));
             })
-            .on('hint', async () => {
-                try {
-                    await this._hint();
-                } catch(err) {
-                    this.gameState.emit('error', err);
-                }
+            .on(constants.GAME_STATES.HINT, async () => {
+                await this._gracefulErrorHandler(this._hint.bind(this));
             })
-            .on('exit', resolve)
-            .on('error', reject);
+            .on(constants.GAME_STATES.QUIT, resolve)
+            .on(constants.GAME_STATES.ERROR, reject);
         });
 
-        this.gameState.emit('start');
+        this.gameState.emit(constants.GAME_STATES.START);
         return promise;
     }
 
     async _start() {
         L.info(`\n---------------- LET'S PLAY : GUESS THE WORD! ----------------\n`);
-        await rlQuestionPromisified(`\nInstructions :\nYou would be provided with a definition, a synonym or an antonym and you need to guess what the original word is!\n\nPress Enter to begin!`);
-        return this.gameState.emit('create');
+        await rlQuestionPromisified(`Instructions :\n\nYou would be provided with a definition, a synonym or an antonym and you need to guess what the original word is!\n\nPress Enter to begin!`);
+        L.info(`\nLoading game data... Please wait for a few seconds\n`);
+        return this.gameState.emit(constants.GAME_STATES.CREATE);
     }
 
     async _create() {
         this.randomWord = (await Dictionary.getRandomWord()).word;
 
-        let wordDefinitions = await Dictionary.getWordDefinition(this.randomWord);
-        this.wordDefinition = getRandomDefinition(wordDefinitions);
+        this.wordDefinitions = await Dictionary.getWordDefinition(this.randomWord);
         
         let relatedWords = await Dictionary.getRelatedWords(this.randomWord);
 
-        let antonyms = Dictionary._parseRelatedWordsResponse(relatedWords, constants.WORD_RELATIONSHIP_TYPES.ANTONYM).words;
-        this.antonym = getRandomRelatedWord(antonyms);
-
-        let synonyms = Dictionary._parseRelatedWordsResponse(relatedWords, constants.WORD_RELATIONSHIP_TYPES.SYNONYM).words;
-        this.synonym = getRandomRelatedWord(synonyms);
-
-        return this.gameState.emit('play');
+        this.antonyms = Dictionary._parseRelatedWordsResponse(relatedWords, constants.WORD_RELATIONSHIP_TYPES.ANTONYM).words;
+        
+        this.synonyms = Dictionary._parseRelatedWordsResponse(relatedWords, constants.WORD_RELATIONSHIP_TYPES.SYNONYM).words;
+        
+        L.info(`-----------------------------------------------------------------\n`);
+        
+        return this.gameState.emit(constants.GAME_STATES.PLAY);
     }
 
-    async _play() {
-        L.info(`-----------------------------------------------------------------\n`);
+    async _play(randomize = true) {
+        if(randomize) {
+            this.wordDefinition = Dictionary._getRandomDefinition(this.wordDefinitions);
+            this.antonym = Dictionary._getRandomRelatedWord(this.antonyms);
+            this.synonym = Dictionary._getRandomRelatedWord(this.synonyms);
+        }
+
         L.info(`Definition : ${this.wordDefinition}\n`);
 
         if (this.synonym) {
@@ -129,41 +111,48 @@ class Game {
 
         if (answer.toString().toLowerCase() === this.randomWord) {
             L.info(`\nYou guessed it correctly! The word is ${this.randomWord}`);
-            return this.gameState.emit('exit');
+            return this.gameState.emit(constants.GAME_STATES.QUIT);
         } else {
-            L.info(`\nProvided answer ${answer} is incorrect!\n\n`);
-            return this.gameState.emit('choice');
+            L.info(`\nProvided answer ${answer} is incorrect!\n`);
+            return this.gameState.emit(constants.GAME_STATES.CHOICE);
         }
     }
 
     async _choice() {
         L.info(`-----------------------------------------------------------------\n`);
-        L.info(`1 : Try Again\n2 : Get a hint\n3 : Quit\n\n`);
+        L.info(`1 : Try Again\n2 : Get a hint\n3 : Quit\n`);
         const choice = await rlQuestionPromisified(`Select an option to proceed : `);
+        L.info(``);
 
         switch(choice) {
             case '1' :
-                return this.gameState.emit('play');
+                return this.gameState.emit(constants.GAME_STATES.PLAY, false);
             case '2' :
-                return this.gameState.emit('hint');
+                return this.gameState.emit(constants.GAME_STATES.HINT);
             case '3' :
-                return this.gameState.emit('exit');
+                return this.gameState.emit(constants.GAME_STATES.QUIT);
             default:
-                L.info(`Incorrect choice : ${choice}. Please try again!`);
-                return this.gameState.emit('choice');
+                L.info(`Incorrect choice : ${choice}. Please try again!\n`);
+                return this.gameState.emit(constants.GAME_STATES.CHOICE);
         }
     }
 
     async _hint() {
         L.info(`-----------------------------------------------------------------\n`);
-        L.info(`Hint : Jumbled word : ${LibUtils.jumbleWord(this.randomWord)}`);
-        return this.gameState.emit('play');
+        L.info(`Hint : Jumbled word : ${LibUtils.jumbleWord(this.randomWord)}\n`);
+        return this.gameState.emit(constants.GAME_STATES.PLAY);
     }
-}
 
-class GameState extends EventEmitter {
-    constructor(...args) {
-        super(...args);
+    async _gracefulErrorHandler(promiseFunc, ...args) {
+        try {
+            if(typeof(promiseFunc) !== 'function') {
+                throw new TypeError(`Provided function is not of valid type`);
+            }
+
+            return await promiseFunc(...args);
+        } catch(err) {
+            return this.gameState.emit(constants.GAME_STATES.ERROR, err);
+        }
     }
 }
 
@@ -171,7 +160,7 @@ class Dictionary {
     static async getWordDefinition(word) {
         try {
             if (typeof (word) !== 'string') {
-                throw new Error(`Provided word ${word} is not a valid string`);
+                throw new TypeError(`Provided word ${word} is not a valid string`);
             }
 
             let response = await wordDefinitionClientObject.with(word);
@@ -184,7 +173,7 @@ class Dictionary {
     static async getWordExamples(word) {
         try {
             if (typeof (word) !== 'string') {
-                throw new Error(`Provided word ${word} is not a valid string`);
+                throw new TypeError(`Provided word ${word} is not a valid string`);
             }
 
             let response = await wordExamplesClientObject.with(word);
@@ -206,7 +195,7 @@ class Dictionary {
     static async getRelatedWords(word, relationshipType = constants.WORD_RELATIONSHIP_TYPES.ALL) {
         try {
             if (typeof (word) !== 'string') {
-                throw new Error(`Provided word ${word} is not a valid string`);
+                throw new TypeError(`Provided word ${word} is not a valid string`);
             }
 
             const response = await relatedWordsClientObject.with(word);
@@ -215,27 +204,6 @@ class Dictionary {
         } catch (err) {
             throw err;
         }
-    }
-
-    static _parseRelatedWordsResponse(relatedWordsResponse, relationshipType) {
-        let finalResponse = {};
-
-        if(!Object.values(constants.WORD_RELATIONSHIP_TYPES).includes(relationshipType)) {
-            throw new Error(`Unsupported relationship type ${relationshipType} provided for getting related words`);
-        }
-
-        if(relationshipType === constants.WORD_RELATIONSHIP_TYPES.ALL) {
-            return relatedWordsResponse;
-        }
-
-        for (let row of relatedWordsResponse) {
-            if (row.relationshipType === relationshipType) {
-                finalResponse = row;
-                break;
-            }
-        }
-
-        return finalResponse;
     }
 
     static async getAll(word) {
@@ -265,6 +233,36 @@ class Dictionary {
             throw err;
         }
     }
+
+    static _parseRelatedWordsResponse(relatedWordsResponse, relationshipType) {
+        let finalResponse = {};
+
+        if(!Object.values(constants.WORD_RELATIONSHIP_TYPES).includes(relationshipType)) {
+            throw new Error(`Unsupported relationship type ${relationshipType} provided for getting related words`);
+        }
+
+        if(relationshipType === constants.WORD_RELATIONSHIP_TYPES.ALL) {
+            return relatedWordsResponse;
+        }
+
+        for (let row of relatedWordsResponse) {
+            if (row.relationshipType === relationshipType) {
+                finalResponse = row;
+                break;
+            }
+        }
+
+        return finalResponse;
+    }
+
+    static _getRandomDefinition(wordDefinitions) {
+        const randomIndex = LibUtils.getRandomIntInRange(0, (wordDefinitions.length - 1));
+        return wordDefinitions[randomIndex].text;
+    };
+    
+    static _getRandomRelatedWord(words = []) {
+        return words[LibUtils.getRandomIntInRange(0, words.length - 1)];
+    };
 }
 
 module.exports = Dictionary;
