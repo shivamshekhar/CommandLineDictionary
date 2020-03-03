@@ -6,17 +6,7 @@ const L = require('../lib').logger;
 const LibUtils = require('../lib').utils;
 const constants = require('../config').constants;
 const DictionaryClient = require('../client').dictionary;
-
-const RandomWordClient = DictionaryClient.RandomWord;
-const WordDefinitionClient = DictionaryClient.Definitions;
-const WordExamplesClient = DictionaryClient.Examples;
-const RelatedWordsClient = DictionaryClient.RelatedWords;
-
-const randomWordClientObject = new RandomWordClient();
-const wordDefinitionClientObject = new WordDefinitionClient();
-const wordExamplesClientObject = new WordExamplesClient();
-const relatedWordsClientObject = new RelatedWordsClient();
-
+const dictionaryClientObject = new DictionaryClient();
 const logtag = '[api/dictionary]';
 
 const rl = readline.createInterface({
@@ -50,8 +40,11 @@ class Game {
             .on(constants.GAME_STATES.CREATE, async () => {
                 await this._gracefulErrorHandler(this._create.bind(this));
             })
-            .on(constants.GAME_STATES.PLAY, async (randomize) => {
-                await this._gracefulErrorHandler(this._play.bind(this), randomize);
+            .on(constants.GAME_STATES.DISPLAY, async (randomize) => {
+                await this._gracefulErrorHandler(this._displayWordData.bind(this), randomize);
+            })
+            .on(constants.GAME_STATES.PLAY, async () => {
+                await this._gracefulErrorHandler(this._play.bind(this));
             })
             .on(constants.GAME_STATES.CHOICE, async () => {
                 await this._gracefulErrorHandler(this._choice.bind(this));
@@ -87,30 +80,30 @@ class Game {
         
         L.info(`-----------------------------------------------------------------\n`);
         
+        return this.gameState.emit(constants.GAME_STATES.DISPLAY);
+    }
+
+    async _displayWordData(randomize = true) {
+        const wordData = this._getWordData(randomize);        
+
+        L.info(`Definition : ${wordData.wordDefinition}\n`);
+
+        if (wordData.synonym) {
+            L.info(`Synonym : ${wordData.synonym}\n`);
+        }
+
+        if (wordData.antonym) {
+            L.info(`Antonym : ${wordData.antonym}\n`);
+        }
+
         return this.gameState.emit(constants.GAME_STATES.PLAY);
     }
 
-    async _play(randomize = true) {
-        if(randomize) {
-            this.wordDefinition = Dictionary._getRandomDefinition(this.wordDefinitions);
-            this.antonym = Dictionary._getRandomRelatedWord(this.antonyms);
-            this.synonym = Dictionary._getRandomRelatedWord(this.synonyms);
-        }
+    async _play() {
+        let answer = (await rlQuestionPromisified(`Guess the word : `)) || '';
 
-        L.info(`Definition : ${this.wordDefinition}\n`);
-
-        if (this.synonym) {
-            L.info(`Synonym : ${this.synonym}\n`);
-        }
-
-        if (this.antonym) {
-            L.info(`Antonym : ${this.antonym}\n`);
-        }
-
-        const answer = (await rlQuestionPromisified(`Guess the word : `)) || '';
-
-        if (answer.toString().toLowerCase() === this.randomWord) {
-            L.info(`\nYou guessed it correctly! The word is ${this.randomWord}`);
+        if (this._checkForCorrectAnswer(answer)) {
+            L.info(`\nYou guessed it correctly! The word is ${answer}`);
             return this.gameState.emit(constants.GAME_STATES.QUIT);
         } else {
             L.info(`\nProvided answer ${answer} is incorrect!\n`);
@@ -126,7 +119,7 @@ class Game {
 
         switch(choice) {
             case '1' :
-                return this.gameState.emit(constants.GAME_STATES.PLAY, false);
+                return this.gameState.emit(constants.GAME_STATES.DISPLAY, false);
             case '2' :
                 return this.gameState.emit(constants.GAME_STATES.HINT);
             case '3' :
@@ -139,7 +132,32 @@ class Game {
 
     async _hint() {
         L.info(`-----------------------------------------------------------------\n`);
-        L.info(`Hint : Jumbled word : ${LibUtils.jumbleWord(this.randomWord)}\n`);
+        const wordData = this._getWordData(true);
+        const wordDefinition = wordData.wordDefinition;
+        const synonym = wordData.synonym;
+        const antonym = wordData.antonym;
+        const jumbledWord = LibUtils.jumbleWord(this.randomWord);
+
+        const hints = [];
+
+        if(wordDefinition) {
+            hints.push(`Hint : Another definition : ${wordDefinition}\n`);
+        }
+
+        if(synonym) {
+            hints.push(`Hint : Another Synonym : ${synonym}\n`);
+        }
+
+        if(antonym) {
+            hints.push(`Hint : Another Antonym : ${antonym}\n`);
+        }
+
+        if(jumbledWord) {
+            hints.push(`Hint : Jumbled Word : ${jumbledWord}\n`);
+        }
+
+        L.info(hints[LibUtils.getRandomIntInRangeInclusive(0, hints.length - 1)]);
+
         return this.gameState.emit(constants.GAME_STATES.PLAY);
     }
 
@@ -154,6 +172,25 @@ class Game {
             return this.gameState.emit(constants.GAME_STATES.ERROR, err);
         }
     }
+
+    _getWordData(randomize) {
+        if(randomize) {
+            this.wordDefinition = Dictionary._getRandomDefinition(this.wordDefinitions);
+            this.antonym = Dictionary._getWordsAtRandom(this.antonyms);
+            this.synonym = Dictionary._getWordsAtRandom(this.synonyms);
+        }
+
+        return {
+            wordDefinition : this.wordDefinition,
+            antonym : this.antonym,
+            synonym : this.synonym,
+        };
+    }
+
+    _checkForCorrectAnswer(answer = '') {
+        answer = answer.toString().toLowerCase();
+        return (answer !== this.synonym && (this.synonyms.includes(answer) || answer === this.randomWord));
+    }
 }
 
 class Dictionary {
@@ -163,7 +200,7 @@ class Dictionary {
                 throw new TypeError(`Provided word ${word} is not a valid string`);
             }
 
-            let response = await wordDefinitionClientObject.with(word);
+            let response = await dictionaryClientObject.getWordDefinitions(word);
             return response;
         } catch (err) {
             throw err;
@@ -176,7 +213,7 @@ class Dictionary {
                 throw new TypeError(`Provided word ${word} is not a valid string`);
             }
 
-            let response = await wordExamplesClientObject.with(word);
+            let response = await dictionaryClientObject.getWordExamples(word);
             return response;
         } catch (err) {
             throw err;
@@ -185,7 +222,7 @@ class Dictionary {
 
     static async getRandomWord() {
         try {
-            let response = await randomWordClientObject.with();
+            let response = await dictionaryClientObject.getRandomWord();
             return response;
         } catch (err) {
             throw err;
@@ -198,7 +235,7 @@ class Dictionary {
                 throw new TypeError(`Provided word ${word} is not a valid string`);
             }
 
-            const response = await relatedWordsClientObject.with(word);
+            const response = await dictionaryClientObject.getRelatedWords(word);
 
             return this._parseRelatedWordsResponse(response, relationshipType);
         } catch (err) {
@@ -256,12 +293,13 @@ class Dictionary {
     }
 
     static _getRandomDefinition(wordDefinitions) {
-        const randomIndex = LibUtils.getRandomIntInRange(0, (wordDefinitions.length - 1));
+        const randomIndex = LibUtils.getRandomIntInRangeInclusive(0, (wordDefinitions.length - 1));
         return wordDefinitions[randomIndex].text;
     };
     
-    static _getRandomRelatedWord(words = []) {
-        return words[LibUtils.getRandomIntInRange(0, words.length - 1)];
+    static _getWordsAtRandom(words = []) {
+        const randomIndex = LibUtils.getRandomIntInRangeInclusive(0, words.length - 1);
+        return words[randomIndex];
     };
 }
 

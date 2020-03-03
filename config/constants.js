@@ -9,6 +9,7 @@ const Constants = Object.freeze({
 
     GAME_STATES : {
         START : "start",
+        DISPLAY : "display",
         PLAY : "play",
         QUIT : "quit",
         ERROR : "error",

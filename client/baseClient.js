@@ -110,6 +110,7 @@ class BaseClient {
             throw err;
         }
 
+        timeout = timeout || this.TIMEOUT;
         headers = headers || {};
 
         _.set(headers, 'x-http-req-id', `${uuid.v4()}`);
