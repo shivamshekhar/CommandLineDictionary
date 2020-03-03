@@ -31,17 +31,17 @@ A basic command line dictionary tool written in Nodejs.
     ```sh
     ./dict play
     ```
-    Rules:
-        - Enter the correct word to complete the game.
-        - Any synonyms of the word(expected answer) would also be accepted as a correct answer.
-        - If incorrect word is entered, user has 3 choices:
-            1. Try again : User can try again.
-            2. Hint : A hint is displayed. Hints could be:
-                2.a The word is randomly jumbled (cat => atc, tac, tca)
-                2.b Another definition of the word is displayed
-                2.c Another antonym of the word is displayed
-                2.d Another synonym of the word is displayed
-            3. Quit : Quit the game.
+### Rules:
+    * Enter the correct word to complete the game.
+    * Any synonyms of the word(expected answer) would also be accepted as a correct answer.
+    * If incorrect word is entered, user has 3 choices:
+        * Try again : User can try again.
+        * Hint : A hint is displayed. Hints could be:
+            * The word is randomly jumbled (cat => atc, tac, tca)
+            * Another definition of the word is displayed
+            * Another antonym of the word is displayed
+            * Another synonym of the word is displayed
+        * Quit : Quit the game.
 
 ## Getting started
 
