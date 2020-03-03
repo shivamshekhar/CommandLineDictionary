@@ -110,7 +110,7 @@ class BaseClient {
             throw err;
         }
 
-        timeout = timeout || this.TIMEOUT;
+        timeout = (timeout === undefined) ? this.TIMEOUT : timeout;
         headers = headers || {};
 
         _.set(headers, 'x-http-req-id', `${uuid.v4()}`);

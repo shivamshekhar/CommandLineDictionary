@@ -3,6 +3,7 @@
 const L = require('./lib').logger;
 const responseLogger = require('./lib').responseLogger;
 const DictionaryApi = require('./api').dictionary;
+const GameApi = require('./api').game;
 const constants = require('./config').constants;
 const logtag = '[dict]';
 
@@ -27,7 +28,7 @@ const logtag = '[dict]';
                 response = await DictionaryApi.getWordExamples(word);
                 break;
             case 'play':
-                await DictionaryApi.gameplay();
+                await GameApi.play();
                 break;
             case undefined:
                 randomWordResponse = await DictionaryApi.getRandomWord();
