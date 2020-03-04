@@ -5,6 +5,13 @@
  * @name ApiConfig
  * @description - Words API configuration, i.e HOST, TIMEOUT, API_KEY etc.
  */
+
+/**
+ * @namespace ApiConfig
+ * @property {String} HOST - API endpoint / hostname
+ * @property {Number} TIMEOUT - API timeout
+ * @property {String} API_KEY - API key for calling dictionary API
+ */
 const ApiConfig = Object.freeze({
     HOST : "https://fourtytwowords.herokuapp.com",
     TIMEOUT : 30 * 1000,
