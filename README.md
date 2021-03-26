@@ -1,3 +1,11 @@
+![No longer maintained](https://img.shields.io/badge/Maintenance-OFF-red.svg)
+### [DEPRECATED] This repository is no longer maintained
+> I did this project as a NodeJS assignment for a job interview, so it was basically built upon the dictionary APIs provided by them, which I believe, no longer work, as the "batteries" are dead! 
+>
+> However, this project can be used as a reference to build interactive text based console clients. Feel free to fork and use it.
+> 
+> ~Shivam
+
 # Command Line Dictionary  
 
 A basic command line dictionary tool written in Nodejs.
